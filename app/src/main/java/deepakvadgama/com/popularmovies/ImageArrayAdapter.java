@@ -9,16 +9,17 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.Collection;
 import java.util.List;
 
-import deepakvadgama.com.popularmovies.data.MovieDetails;
+import deepakvadgama.com.popularmovies.data.Movie;
 
-public class ImageArrayAdapter extends ArrayAdapter<MovieDetails> {
+public class ImageArrayAdapter extends ArrayAdapter<Movie> {
 
     private Context mContext;
-    private List<MovieDetails> mMovies;
+    private List<Movie> mMovies;
 
-    public ImageArrayAdapter(Context context, int resource, int movieImage, List<MovieDetails> objects) {
+    public ImageArrayAdapter(Context context, int resource, int movieImage, List<Movie> objects) {
         super(context, resource, movieImage, objects);
         mContext = context;
         mMovies = objects;
@@ -32,24 +33,37 @@ public class ImageArrayAdapter extends ArrayAdapter<MovieDetails> {
             convertView = inflater.inflate(R.layout.list_item_movies, parent, false);
         }
 
-        ImageView movieImageView = (ImageView) convertView.findViewById(R.id.movieImage);
-        Picasso.with(mContext).load(R.drawable.art_light_clouds).into(movieImageView);
+        ViewHolder holder;
+        if (convertView.getTag() == null) {
+            final ImageView imageView = (ImageView) convertView.findViewById(R.id.movieImage);
+            imageView.setAdjustViewBounds(true);
+            imageView.setPadding(0, 0, 0, 0);
+            holder = new ViewHolder(imageView);
+            convertView.setTag(holder);
+        }
+
+        holder = (ViewHolder) convertView.getTag();
+        ImageView movieImageView = holder.imageView;
+        final Movie movie = mMovies.get(position);
+        Picasso.with(mContext).load(movie.getImagePath()).into(movieImageView);
 
         return movieImageView;
     }
 
     @Override
     public int getCount() {
-        return 10;
+        return mMovies.size();
     }
 
     public static class ViewHolder {
         public final ImageView imageView;
-
         public ViewHolder(ImageView imageView) {
             this.imageView = imageView;
         }
     }
 
-
+    @Override
+    public void addAll(Collection<? extends Movie> collection) {
+        mMovies.addAll(collection);
+    }
 }

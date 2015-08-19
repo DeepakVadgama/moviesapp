@@ -2,13 +2,13 @@ package deepakvadgama.com.popularmovies.data;
 
 import java.util.Date;
 
-public class MovieDetails {
+public class Movie {
 
     private String title;
     private Date releaseDate;
-    private float voteAverage;
+    private double voteAverage;
     private String plotSynopsis;
-    private String imageUrl;
+    private String imagePath;
 
     public String getTitle() {
         return title;
@@ -26,11 +26,11 @@ public class MovieDetails {
         this.releaseDate = releaseDate;
     }
 
-    public float getVoteAverage() {
+    public double getVoteAverage() {
         return voteAverage;
     }
 
-    public void setVoteAverage(float voteAverage) {
+    public void setVoteAverage(double voteAverage) {
         this.voteAverage = voteAverage;
     }
 
@@ -42,12 +42,12 @@ public class MovieDetails {
         this.plotSynopsis = plotSynopsis;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class MovieDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        MovieDetails that = (MovieDetails) o;
+        Movie that = (Movie) o;
 
         return !(title != null ? !title.equals(that.title) : that.title != null);
 
@@ -68,6 +68,6 @@ public class MovieDetails {
 
     @Override
     public String toString() {
-        return "MovieDetails{title='" + title + '\'' + '}';
+        return "Movie{title='" + title + '\'' + '}';
     }
 }
