@@ -1,14 +1,52 @@
 package deepakvadgama.com.popularmovies.data;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Date;
 
-public class Movie {
+public class Movie implements Parcelable {
 
     private String title;
     private Date releaseDate;
-    private double voteAverage;
+    private double voteAverage = -1d;
     private String plotSynopsis;
     private String imagePath;
+
+    public Movie() {
+    }
+
+    public Movie(String title, Date releaseDate, double voteAverage, String plotSynopsis, String imagePath) {
+        this.title = title;
+        this.releaseDate = releaseDate;
+        this.voteAverage = voteAverage;
+        this.plotSynopsis = plotSynopsis;
+        this.imagePath = imagePath;
+    }
+
+    public Movie(Parcel in) {
+        this.title = in.readString();
+        this.voteAverage = in.readDouble();
+        this.plotSynopsis = in.readString();
+        this.imagePath = in.readString();
+        long time = in.readLong();
+        if (time < 0) {
+            releaseDate = null;
+        } else {
+            releaseDate = new Date(time);
+        }
+    }
+
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 
     public String getTitle() {
         return title;
@@ -69,5 +107,23 @@ public class Movie {
     @Override
     public String toString() {
         return "Movie{title='" + title + '\'' + '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeDouble(voteAverage);
+        dest.writeString(plotSynopsis);
+        dest.writeString(imagePath);
+        if (releaseDate != null) {
+            dest.writeLong(releaseDate.getTime());
+        } else {
+            dest.writeLong(-1l);
+        }
     }
 }
