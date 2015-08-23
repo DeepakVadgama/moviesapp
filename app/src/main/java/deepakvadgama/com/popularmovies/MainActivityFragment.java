@@ -1,9 +1,11 @@
 package deepakvadgama.com.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcel;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,12 +38,8 @@ import java.util.List;
 import deepakvadgama.com.popularmovies.data.Movie;
 
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class MainActivityFragment extends Fragment {
 
-    final String SORT_BY_POPULARITY = "popularity.desc";
     private ImageArrayAdapter mAdapter;
 
     public MainActivityFragment() {
@@ -63,8 +61,10 @@ public class MainActivityFragment extends Fragment {
 
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
             FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-            fetchMoviesTask.execute(SORT_BY_POPULARITY);
+            fetchMoviesTask.execute(sortBy);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -89,8 +89,11 @@ public class MainActivityFragment extends Fragment {
             }
         });
 
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
+
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-        fetchMoviesTask.execute(SORT_BY_POPULARITY);
+        fetchMoviesTask.execute(sortBy);
 
         return rootView;
     }
@@ -100,6 +103,9 @@ public class MainActivityFragment extends Fragment {
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
         private final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
         private final String IMAGE_QUALITY = "w185";
+
+        private final String SORT_BY_POPULARITY = "popularity.desc";
+        private final String SORT_BY_RATING = "vote_average.desc";
 
         @Override
         protected List<Movie> doInBackground(String... params) {
@@ -114,9 +120,13 @@ public class MainActivityFragment extends Fragment {
                 final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
                 final String SORT_PARAM = "sort_by";
                 final String API_KEY_PARAM = "api_key";
+                String sortBy = SORT_BY_POPULARITY;
+                if (getString(R.string.sort_rating).equals(params[0])) {
+                    sortBy = SORT_BY_RATING;
+                }
 
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(SORT_PARAM, params[0])
+                        .appendQueryParameter(SORT_PARAM, sortBy)
                         .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
                         .build();
 
@@ -180,7 +190,7 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<Movie> movies) {
-            if (!movies.isEmpty()) {
+            if (movies != null && !movies.isEmpty()) {
                 mAdapter.clear();
                 mAdapter.addAll(movies);
             }
