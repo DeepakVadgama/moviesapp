@@ -179,7 +179,7 @@ public class MainActivityFragment extends Fragment {
                     return null;
                 }
                 movieDetailsStr = buffer.toString();
-                Log.v(LOG_TAG, "URI return value for " + builtUri.toString() + ": " + movieDetailsStr);
+//                Log.v(LOG_TAG, "URI return value for " + builtUri.toString() + ": " + movieDetailsStr);
 
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
@@ -199,7 +199,7 @@ public class MainActivityFragment extends Fragment {
 
             List<Movie> movieList = null;
             try {
-                 movieList = getMovieDetailsListFromJson(movieDetailsStr);
+                movieList = getMovieDetailsListFromJson(movieDetailsStr);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error in JSON conversion", e);
             }
@@ -235,17 +235,11 @@ public class MainActivityFragment extends Fragment {
             for (int i = 0; i < movieArray.length(); i++) {
                 Movie movie = new Movie();
                 final JSONObject jsonObject = movieArray.getJSONObject(i);
-                try {
-                    movie.setTitle(jsonObject.getString(TITLE));
-                    movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
-                    movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
-                    movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
-                    movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                movie.setTitle(jsonObject.getString(TITLE));
+                movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
+                movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
+                movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
+                movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
                 movieList.add(movie);
             }
 
