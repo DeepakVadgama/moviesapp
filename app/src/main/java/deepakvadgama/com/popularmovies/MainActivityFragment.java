@@ -213,6 +213,7 @@ public class MainActivityFragment extends Fragment {
                 mAdapter.clear();
                 mAdapter.addAll(movies);
             }
+            mMovies = (ArrayList<Movie>) movies;
             mAdapter.notifyDataSetChanged();
         }
 
