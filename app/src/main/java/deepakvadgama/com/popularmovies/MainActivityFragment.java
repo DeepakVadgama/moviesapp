@@ -40,7 +40,9 @@ import deepakvadgama.com.popularmovies.data.Movie;
 
 public class MainActivityFragment extends Fragment {
 
+    private static final String SAVED_MOVIE_LIST = "movies_list_save";
     private ImageArrayAdapter mAdapter;
+    private ArrayList<Movie> mMovies;
 
     public MainActivityFragment() {
     }
@@ -49,6 +51,11 @@ public class MainActivityFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_MOVIE_LIST)) {
+            mMovies = savedInstanceState.getParcelableArrayList(SAVED_MOVIE_LIST);
+        } else {
+            mMovies = null;
+        }
     }
 
     @Override
@@ -89,13 +96,24 @@ public class MainActivityFragment extends Fragment {
             }
         });
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
+        if (mMovies != null && !mMovies.isEmpty()) {
+            mAdapter.addAll(mMovies);
+            mAdapter.notifyDataSetChanged();
+        } else {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
 
-        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-        fetchMoviesTask.execute(sortBy);
+            FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+            fetchMoviesTask.execute(sortBy);
+        }
 
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(SAVED_MOVIE_LIST, mMovies);
+        super.onSaveInstanceState(outState);
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
@@ -179,13 +197,14 @@ public class MainActivityFragment extends Fragment {
                 }
             }
 
+            List<Movie> movieList = null;
             try {
-                return getMovieDetailsListFromJson(movieDetailsStr);
+                 movieList = getMovieDetailsListFromJson(movieDetailsStr);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error in JSON conversion", e);
             }
 
-            return null;
+            return movieList;
         }
 
         @Override
@@ -215,11 +234,17 @@ public class MainActivityFragment extends Fragment {
             for (int i = 0; i < movieArray.length(); i++) {
                 Movie movie = new Movie();
                 final JSONObject jsonObject = movieArray.getJSONObject(i);
-                movie.setTitle(jsonObject.getString(TITLE));
-                movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
-                movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
-                movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
-                movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
+                try {
+                    movie.setTitle(jsonObject.getString(TITLE));
+                    movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
+                    movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
+                    movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
+                    movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 movieList.add(movie);
             }
 
@@ -235,7 +260,12 @@ public class MainActivityFragment extends Fragment {
 
         private Date convertToDate(String dateString) throws ParseException {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
-            return dateFormat.parse(dateString);
+            try {
+                return dateFormat.parse(dateString);
+            } catch (ParseException e) {
+                Log.e(LOG_TAG, "Error in parsing date for string: " + dateString, e);
+            }
+            return null;
         }
     }
 

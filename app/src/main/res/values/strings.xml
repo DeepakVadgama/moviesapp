@@ -13,7 +13,7 @@
     <string name="pref_sort_key">pref_sort_key</string>
     <string name="sort_rating">rating</string>
     <string name="sort_popularity">popularity</string>
-    <string name="pref_sort_title">Sort movie listing</string>
+    <string name="pref_sort_title">Sort</string>
     <string-array name="pref_sort_titles">
         <item>Sort by popularity</item>
         <item>Sort by average rating</item>
