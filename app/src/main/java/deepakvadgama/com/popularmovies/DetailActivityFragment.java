@@ -25,6 +25,8 @@ import deepakvadgama.com.popularmovies.data.Movie;
 public class DetailActivityFragment extends Fragment {
 
     public final String LOG_TAG = this.getClass().getSimpleName();
+    public static final String MOVIE_TAG = "movie_tag";
+
 
     public DetailActivityFragment() {
     }
@@ -34,33 +36,39 @@ public class DetailActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
+        Movie movie = null;
+
         Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
-            Movie movie = intent.getParcelableExtra(Intent.EXTRA_TEXT);
+        if (intent != null && intent.hasExtra(MOVIE_TAG)) {
+            movie = intent.getParcelableExtra(MOVIE_TAG);
             Log.d(LOG_TAG, "Got the movie from main activity: " + movie);
-
-            if (movie != null) {
-                TextView movieTitle = (TextView) rootView.findViewById(R.id.movie_title);
-                movieTitle.setText(movie.getTitle());
-
-                TextView movieRating = (TextView) rootView.findViewById(R.id.movie_rating_average);
-                // Movie rating might not be available
-                if (movie.getVoteAverage() >= 0d) {
-                    movieRating.setText("" + movie.getVoteAverage() + "/10");
-                }
-
-                ImageView moviePoster = (ImageView) rootView.findViewById(R.id.movie_poster);
-                Picasso.with(getActivity()).load(movie.getImagePath()).into(moviePoster);
-
-                TextView movieRelease = (TextView) rootView.findViewById(R.id.movie_release_date);
-                DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
-                String releaseDate = movie.getReleaseDate() == null ? "TBD" : df.format(movie.getReleaseDate());
-                movieRelease.setText(releaseDate);
-
-                TextView moviePlot = (TextView) rootView.findViewById(R.id.movie_plot);
-                moviePlot.setText(movie.getPlotSynopsis());
-            }
+        } else if (getArguments() != null && getArguments().containsKey(MOVIE_TAG)) {
+            movie = getArguments().getParcelable(MOVIE_TAG);
         }
+
+        if (movie != null) {
+            TextView movieTitle = (TextView) rootView.findViewById(R.id.movie_title);
+            movieTitle.setText(movie.getTitle());
+
+            TextView movieRating = (TextView) rootView.findViewById(R.id.movie_rating_average);
+            // Movie rating might not be available
+            if (movie.getVoteAverage() >= 0d) {
+                movieRating.setText("" + movie.getVoteAverage() + "/10");
+            }
+
+            ImageView moviePoster = (ImageView) rootView.findViewById(R.id.movie_poster);
+            Picasso.with(getActivity()).load(movie.getImagePath()).into(moviePoster);
+
+            TextView movieRelease = (TextView) rootView.findViewById(R.id.movie_release_date);
+            DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
+            String releaseDate = movie.getReleaseDate() == null ? "TBD" : df.format(movie.getReleaseDate());
+            movieRelease.setText(releaseDate);
+
+            TextView moviePlot = (TextView) rootView.findViewById(R.id.movie_plot);
+            moviePlot.setText(movie.getPlotSynopsis());
+        }
+
+
         return rootView;
     }
 

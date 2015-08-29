@@ -1,7 +1,6 @@
-<fragment
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment"
+    android:id="@+id/fragment_detail_container"
     android:name="deepakvadgama.com.popularmovies.DetailActivityFragment"
     tools:layout="@layout/fragment_detail"
     android:layout_width="match_parent"
