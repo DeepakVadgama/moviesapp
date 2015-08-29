@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -26,7 +27,6 @@ public class DetailActivityFragment extends Fragment {
 
     public final String LOG_TAG = this.getClass().getSimpleName();
     public static final String MOVIE_TAG = "movie_tag";
-
 
     public DetailActivityFragment() {
     }

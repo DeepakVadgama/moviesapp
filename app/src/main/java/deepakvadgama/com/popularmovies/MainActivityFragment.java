@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -41,8 +42,12 @@ import deepakvadgama.com.popularmovies.data.Movie;
 public class MainActivityFragment extends Fragment {
 
     private static final String SAVED_MOVIE_LIST = "movies_list_save";
+    private static final String SELECTED_MOVIE_POSITION = "selected_movie_position";
     private ImageArrayAdapter mAdapter;
+    private GridView mGridView;
     private ArrayList<Movie> mMovies;
+    private int mPosition = ListView.INVALID_POSITION;
+
 
     public MainActivityFragment() {
     }
@@ -53,6 +58,7 @@ public class MainActivityFragment extends Fragment {
         setHasOptionsMenu(true);
         if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_MOVIE_LIST)) {
             mMovies = savedInstanceState.getParcelableArrayList(SAVED_MOVIE_LIST);
+            mPosition = savedInstanceState.getInt(SELECTED_MOVIE_POSITION, 0);
         } else {
             mMovies = null;
         }
@@ -82,17 +88,16 @@ public class MainActivityFragment extends Fragment {
 
         List<Movie> myStringArray = new ArrayList<>();
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
+        mGridView = (GridView) rootView.findViewById(R.id.gridview);
 
         mAdapter = new ImageArrayAdapter(getActivity(), R.layout.list_item_movies, R.id.movieImage, myStringArray);
-        gridview.setAdapter(mAdapter);
-        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGridView.setAdapter(mAdapter);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Movie movie = mAdapter.getItem(position);
-                /*Intent intent = new Intent(getActivity(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT, movie);
-                startActivity(intent);*/
+                mPosition = position;
                 ((Callback) getActivity()).onItemSelected(movie);
             }
         });
@@ -100,10 +105,12 @@ public class MainActivityFragment extends Fragment {
         if (mMovies != null && !mMovies.isEmpty()) {
             mAdapter.addAll(mMovies);
             mAdapter.notifyDataSetChanged();
+
+            // Can be avoided if it is loader/cursor?
+            mGridView.smoothScrollToPosition(mPosition == ListView.INVALID_POSITION ? 0 : mPosition);
         } else {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
             String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
-
             FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
             fetchMoviesTask.execute(sortBy);
         }
@@ -114,6 +121,7 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(SAVED_MOVIE_LIST, mMovies);
+        outState.putInt(SELECTED_MOVIE_POSITION, mPosition);
         super.onSaveInstanceState(outState);
     }
 
@@ -125,6 +133,23 @@ public class MainActivityFragment extends Fragment {
 
         private final String SORT_BY_POPULARITY = "popularity.desc";
         private final String SORT_BY_RATING = "vote_average.desc";
+
+        @Override
+        protected void onPostExecute(List<Movie> movies) {
+            if (movies != null && !movies.isEmpty()) {
+                mAdapter.clear();
+                mAdapter.addAll(movies);
+            }
+            mMovies = (ArrayList<Movie>) movies;
+            mAdapter.notifyDataSetChanged();
+
+            if (mPosition == ListView.INVALID_POSITION && movies != null && !movies.isEmpty()) {
+                mPosition = 0;
+                ((Callback) getActivity()).onItemSelected(movies.get(0));
+            } else {
+                mGridView.smoothScrollToPosition(mPosition);
+            }
+        }
 
         @Override
         protected List<Movie> doInBackground(String... params) {
@@ -208,16 +233,6 @@ public class MainActivityFragment extends Fragment {
             return movieList;
         }
 
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            if (movies != null && !movies.isEmpty()) {
-                mAdapter.clear();
-                mAdapter.addAll(movies);
-            }
-            mMovies = (ArrayList<Movie>) movies;
-            mAdapter.notifyDataSetChanged();
-        }
-
         private List<Movie> getMovieDetailsListFromJson(String movieDetailJson) throws JSONException, ParseException {
 
             final String RESULTS_LIST = "results";
@@ -272,11 +287,6 @@ public class MainActivityFragment extends Fragment {
      */
     public interface Callback {
 
-        /**
-         * DetailFragmentCallback for when an item has been selected.
-         *
-         * @param movie
-         */
         public void onItemSelected(Movie movie);
     }
 
