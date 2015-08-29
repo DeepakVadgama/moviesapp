@@ -107,7 +107,7 @@ public class MainActivityFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
 
             // Can be avoided if it is loader/cursor?
-            mGridView.smoothScrollToPosition(mPosition == ListView.INVALID_POSITION ? 0 : mPosition);
+            mGridView.smoothScrollToPositionFromTop(mPosition == ListView.INVALID_POSITION ? 0 : mPosition, 0);
         } else {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
             String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
@@ -147,7 +147,7 @@ public class MainActivityFragment extends Fragment {
                 mPosition = 0;
                 ((Callback) getActivity()).onItemSelected(movies.get(0));
             } else {
-                mGridView.smoothScrollToPosition(mPosition);
+                mGridView.smoothScrollToPositionFromTop(mPosition, 0);
             }
         }
 
