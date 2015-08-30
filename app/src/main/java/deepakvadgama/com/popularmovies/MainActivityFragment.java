@@ -1,13 +1,11 @@
 package deepakvadgama.com.popularmovies;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Parcel;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,6 +104,7 @@ public class MainActivityFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
 
             // Can be avoided if it is loader/cursor?
+            // Can also be used in setActivatedItem instead..
             mGridView.smoothScrollToPositionFromTop(mPosition == ListView.INVALID_POSITION ? 0 : mPosition, 0);
         } else {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -145,7 +143,7 @@ public class MainActivityFragment extends Fragment {
 
             if (mPosition == ListView.INVALID_POSITION && movies != null && !movies.isEmpty()) {
                 mPosition = 0;
-                ((Callback) getActivity()).onItemSelected(movies.get(0));
+                ((Callback) getActivity()).onItemSelected(movies.get(0), true);
             } else {
                 mGridView.smoothScrollToPositionFromTop(mPosition, 0);
             }
@@ -286,8 +284,24 @@ public class MainActivityFragment extends Fragment {
      * selections.
      */
     public interface Callback {
-
+        public void onItemSelected(Movie movie, boolean firstTime);
         public void onItemSelected(Movie movie);
     }
+/*
+    *//**
+     * Turns on activate-on-click mode. When this mode is on, list items will be
+     * given the 'activated' state when touched.
+     *//*
+    public void setActivateOnItemClick(boolean activateOnItemClick) {
+        mGridView.setChoiceMode(activateOnItemClick ? ListView.CHOICE_MODE_SINGLE : ListView.CHOICE_MODE_NONE);
+    }
+
+    private void setActivatedPosition(int position) {
+        if (position == ListView.INVALID_POSITION) {
+            mGridView.setItemChecked(0, false);
+        } else {
+            mGridView.setItemChecked(position, true);
+        }
+    }*/
 
 }

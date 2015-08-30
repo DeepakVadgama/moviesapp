@@ -49,9 +49,6 @@ public class SettingsActivityFragment extends PreferenceFragment implements Pref
             int prefIndex = listPreference.findIndexOfValue(stringValue);
             if (prefIndex >= 0) {
                 preference.setSummary(listPreference.getEntries()[prefIndex]);
-
-                // Refresh main activity so that the movies can update
-//                getParent().recreate();
             }
 
         } else {

@@ -5,6 +5,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 
 import deepakvadgama.com.popularmovies.data.Movie;
 
@@ -32,9 +33,6 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
         }
     }
 
-    // TODO: Skipped onResume check this out https://github.com/udacity/Sunshine-Version-2/compare/5.08_images...5.09_two_pane_ui
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -60,7 +58,7 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
 
 
     @Override
-    public void onItemSelected(Movie movie) {
+    public void onItemSelected(Movie movie, boolean firstTime) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -75,9 +73,14 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
                     .beginTransaction()
                     .replace(R.id.fragment_detail_container, fragment, DETAILFRAGMENT_TAG)
                     .commit();
-        } else {
+        } else if (!firstTime) {
             Intent intent = new Intent(this, DetailActivity.class).putExtra(DetailActivityFragment.MOVIE_TAG, movie);
             startActivity(intent);
         }
+    }
+
+    @Override
+    public void onItemSelected(Movie movie) {
+        onItemSelected(movie, false);
     }
 }

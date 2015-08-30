@@ -18,9 +18,14 @@ public class SettingsActivity extends ActionBarActivity {
                 .commit();
     }
 
+    /*
+    Conscious decision of recreating MainActivity to allow changed settings to take effect.
+    The con is, if settings has not changed, the data is still retrieved over the network.
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public Intent getParentActivityIntent() {
         return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
+    */
 }
