@@ -5,7 +5,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
 
 import deepakvadgama.com.popularmovies.data.Movie;
 
@@ -14,10 +13,13 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
 
     private boolean mTwoPane;
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
+    private String mSortCriteria;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mSortCriteria = Utility.getSortCriteria(this);
+
         setContentView(R.layout.activity_main);
         if (findViewById(R.id.fragment_detail_container) != null) {
             mTwoPane = true;
@@ -31,6 +33,9 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
         } else {
             mTwoPane = false;
         }
+
+        MainActivityFragment ff = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
+        ff.setIfTwoPane(mTwoPane);
     }
 
     @Override
@@ -58,7 +63,7 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
 
 
     @Override
-    public void onItemSelected(Movie movie, boolean firstTime) {
+    public void onItemSelected(Movie movie) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -73,14 +78,23 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
                     .beginTransaction()
                     .replace(R.id.fragment_detail_container, fragment, DETAILFRAGMENT_TAG)
                     .commit();
-        } else if (!firstTime) {
+        } else {
             Intent intent = new Intent(this, DetailActivity.class).putExtra(DetailActivityFragment.MOVIE_TAG, movie);
             startActivity(intent);
         }
     }
 
     @Override
-    public void onItemSelected(Movie movie) {
-        onItemSelected(movie, false);
+    protected void onResume() {
+        super.onResume();
+        String sortCriteria = Utility.getSortCriteria(this);
+
+        if (sortCriteria != null && !sortCriteria.equals(mSortCriteria)) {
+            MainActivityFragment ff = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
+            if (ff != null) {
+                ff.onSortCriteriaUpdated();
+            }
+            mSortCriteria = sortCriteria;
+        }
     }
 }

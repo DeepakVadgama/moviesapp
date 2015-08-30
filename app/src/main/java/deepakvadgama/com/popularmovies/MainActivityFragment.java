@@ -40,9 +40,11 @@ public class MainActivityFragment extends Fragment {
 
     private static final String SAVED_MOVIE_LIST = "movies_list_save";
     private static final String SELECTED_MOVIE_POSITION = "selected_movie_position";
+    private static final String TWO_PANE = "two_pane";
     private ImageArrayAdapter mAdapter;
     private GridView mGridView;
     private ArrayList<Movie> mMovies;
+    private boolean mTwoPane = false;
     private int mPosition = ListView.INVALID_POSITION;
 
 
@@ -56,8 +58,7 @@ public class MainActivityFragment extends Fragment {
         if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_MOVIE_LIST)) {
             mMovies = savedInstanceState.getParcelableArrayList(SAVED_MOVIE_LIST);
             mPosition = savedInstanceState.getInt(SELECTED_MOVIE_POSITION, 0);
-        } else {
-            mMovies = null;
+            mTwoPane = savedInstanceState.getBoolean(TWO_PANE);
         }
     }
 
@@ -71,14 +72,14 @@ public class MainActivityFragment extends Fragment {
 
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
+            String sortBy = Utility.getSortCriteria(getActivity());
             FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
             fetchMoviesTask.execute(sortBy);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -107,10 +108,7 @@ public class MainActivityFragment extends Fragment {
             // Can also be used in setActivatedItem instead..
             mGridView.smoothScrollToPositionFromTop(mPosition == ListView.INVALID_POSITION ? 0 : mPosition, 0);
         } else {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.sort_popularity));
-            FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-            fetchMoviesTask.execute(sortBy);
+            onSortCriteriaUpdated();
         }
 
         return rootView;
@@ -120,7 +118,14 @@ public class MainActivityFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(SAVED_MOVIE_LIST, mMovies);
         outState.putInt(SELECTED_MOVIE_POSITION, mPosition);
+        outState.putBoolean(SELECTED_MOVIE_POSITION, mTwoPane);
         super.onSaveInstanceState(outState);
+    }
+
+    public void onSortCriteriaUpdated() {
+        String sortBy = Utility.getSortCriteria(getActivity());
+        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
+        fetchMoviesTask.execute(sortBy);
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
@@ -137,16 +142,19 @@ public class MainActivityFragment extends Fragment {
             if (movies != null && !movies.isEmpty()) {
                 mAdapter.clear();
                 mAdapter.addAll(movies);
+                mMovies = (ArrayList<Movie>) movies;
             }
-            mMovies = (ArrayList<Movie>) movies;
             mAdapter.notifyDataSetChanged();
 
-            if (mPosition == ListView.INVALID_POSITION && movies != null && !movies.isEmpty()) {
+            // Solved by creating boolean mTwoPane
+            // Potential problem, what it this task is called, after a position is selected in tablet, but then someone
+            // updated the sort criteria. In that case, the data will be new, but the mPosition will not have been updated right?
+            if (mTwoPane && movies != null && !movies.isEmpty()) {
                 mPosition = 0;
-                ((Callback) getActivity()).onItemSelected(movies.get(0), true);
-            } else {
-                mGridView.smoothScrollToPositionFromTop(mPosition, 0);
+                ((Callback) getActivity()).onItemSelected(movies.get(0));
             }
+
+            mGridView.smoothScrollToPositionFromTop(mPosition, 0);
         }
 
         @Override
@@ -284,11 +292,12 @@ public class MainActivityFragment extends Fragment {
      * selections.
      */
     public interface Callback {
-        public void onItemSelected(Movie movie, boolean firstTime);
         public void onItemSelected(Movie movie);
     }
 /*
-    *//**
+    */
+
+    /**
      * Turns on activate-on-click mode. When this mode is on, list items will be
      * given the 'activated' state when touched.
      *//*
@@ -303,5 +312,7 @@ public class MainActivityFragment extends Fragment {
             mGridView.setItemChecked(position, true);
         }
     }*/
-
+    public void setIfTwoPane(boolean mTwoPane) {
+        this.mTwoPane = mTwoPane;
+    }
 }
