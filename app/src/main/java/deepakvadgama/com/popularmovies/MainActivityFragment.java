@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -72,9 +73,7 @@ public class MainActivityFragment extends Fragment {
 
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            String sortBy = Utility.getSortCriteria(getActivity());
-            FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
-            fetchMoviesTask.execute(sortBy);
+            refetchMovies();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -108,7 +107,7 @@ public class MainActivityFragment extends Fragment {
             // Can also be used in setActivatedItem instead..
             mGridView.smoothScrollToPositionFromTop(mPosition == ListView.INVALID_POSITION ? 0 : mPosition, 0);
         } else {
-            onSortCriteriaUpdated();
+            refetchMovies();
         }
 
         return rootView;
@@ -122,7 +121,7 @@ public class MainActivityFragment extends Fragment {
         super.onSaveInstanceState(outState);
     }
 
-    public void onSortCriteriaUpdated() {
+    public void refetchMovies() {
         String sortBy = Utility.getSortCriteria(getActivity());
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
         fetchMoviesTask.execute(sortBy);
@@ -139,6 +138,11 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<Movie> movies) {
+
+            if (isCancelled()) {
+                return;
+            }
+
             if (movies != null && !movies.isEmpty()) {
                 mAdapter.clear();
                 mAdapter.addAll(movies);
@@ -153,12 +157,16 @@ public class MainActivityFragment extends Fragment {
                 mPosition = 0;
                 ((Callback) getActivity()).onItemSelected(movies.get(0));
             }
-
             mGridView.smoothScrollToPositionFromTop(mPosition, 0);
         }
 
         @Override
         protected List<Movie> doInBackground(String... params) {
+
+            if (!Utility.isConnectedToInternet(getActivity())) {
+                Snackbar.make(getView(), "Not connected to internet", Snackbar.LENGTH_LONG).show();
+                cancel(true);
+            }
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;

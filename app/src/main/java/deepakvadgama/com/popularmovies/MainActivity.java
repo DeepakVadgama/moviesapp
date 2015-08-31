@@ -92,7 +92,7 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
         if (sortCriteria != null && !sortCriteria.equals(mSortCriteria)) {
             MainActivityFragment ff = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
             if (ff != null) {
-                ff.onSortCriteriaUpdated();
+                ff.refetchMovies();
             }
             mSortCriteria = sortCriteria;
         }
