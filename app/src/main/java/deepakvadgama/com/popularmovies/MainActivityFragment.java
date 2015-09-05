@@ -176,49 +176,14 @@ public class MainActivityFragment extends Fragment {
                 Uri builtUri = getMovieUri(params[0]);
                 URL url = new URL(builtUri.toString());
                 Log.v(LOG_TAG, "Built URI " + builtUri.toString());
-                String movieDetailsStr = queryFromNetwork(url);
+                String movieDetailsStr = Utility.queryFromNetwork(url, LOG_TAG);
                 movieList = getMovieDetailsListFromJson(movieDetailsStr);
-
-                for (Movie movie : movieList) {
-                    builtUri = getReviewsAndTrailersUri(movie.getId());
-                    url = new URL(builtUri.toString());
-                    String reviewsAndTrailers = queryFromNetwork(url);
-                    populateMovieDetailsFromJson(reviewsAndTrailers, movie);
-                }
 
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error in JSON conversion", e);
             }
 
             return movieList;
-        }
-
-        private void populateMovieDetailsFromJson(String json, Movie movie) throws JSONException {
-
-            final String RESULTS_LIST = "results";
-            final String TITLE = "title";
-            final String SYNOPSIS = "overview";
-            final String RELEASE_DATE = "release_date";
-            final String IMAGE_PATH = "poster_path";
-            final String VOTE_AVG = "vote_average";
-            final String ID = "id";
-
-            List<Movie> movieList = new ArrayList<>();
-
-            JSONObject forecastJson = new JSONObject(json);
-            JSONArray movieArray = forecastJson.getJSONArray(RESULTS_LIST);
-        }
-
-        private Uri getReviewsAndTrailersUri(String id) {
-            final String DISCOVER_BASE_URL = "http://api.themoviedb.org/3/movie?";
-            final String API_KEY_PARAM = "api_key";
-
-            return Uri.parse(DISCOVER_BASE_URL).buildUpon()
-                    .appendPath(id)
-                    .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
-                    .appendQueryParameter("append_to_response", "trailers,reviews")
-                    .build();
-
         }
 
         private Uri getMovieUri(String sortKey) {
@@ -233,7 +198,6 @@ public class MainActivityFragment extends Fragment {
             return Uri.parse(DISCOVER_BASE_URL).buildUpon()
                     .appendQueryParameter(SORT_PARAM, sortBy)
                     .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
-//                    .appendQueryParameter("append_to_response", "trailers,reviews")
                     .build();
         }
 
@@ -267,60 +231,6 @@ public class MainActivityFragment extends Fragment {
             return movieList;
         }
 
-        private String queryFromNetwork(URL url) {
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String json = null;
-            try {
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                json = buffer.toString();
-//                Log.v(LOG_TAG, "URI return value for " + builtUri.toString() + ": " + movieDetailsStr);
-
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
-            return json;
-        }
-
         private String getCompleteUrl(String string) {
             if (string == null || string.isEmpty()) {
                 return null;
@@ -347,8 +257,6 @@ public class MainActivityFragment extends Fragment {
     public interface Callback {
         public void onItemSelected(Movie movie);
     }
-/*
-    */
 
     /**
      * Turns on activate-on-click mode. When this mode is on, list items will be

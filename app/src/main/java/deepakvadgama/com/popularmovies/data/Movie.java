@@ -16,8 +16,6 @@ public class Movie implements Parcelable {
     private String plotSynopsis;
     private String imagePath;
     private boolean isFavorite = false;
-    private List<Trailer> trailerList = new ArrayList<>();
-    private List<Review> reviewList = new ArrayList<>();
 
     public Movie() {
     }
@@ -38,8 +36,6 @@ public class Movie implements Parcelable {
         this.plotSynopsis = plotSynopsis;
         this.imagePath = imagePath;
         this.isFavorite = isFavorite;
-        this.trailerList = trailerList;
-        this.reviewList = reviewList;
     }
 
     public Movie(Parcel in) {
@@ -55,8 +51,6 @@ public class Movie implements Parcelable {
         } else {
             releaseDate = new Date(time);
         }
-        in.readTypedList(this.trailerList, Trailer.CREATOR);
-        in.readTypedList(this.reviewList, Review.CREATOR);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
@@ -82,8 +76,6 @@ public class Movie implements Parcelable {
         } else {
             dest.writeLong(-1l);
         }
-        dest.writeTypedList(trailerList);
-        dest.writeTypedList(reviewList);
     }
 
     public String getTitle() {
@@ -158,22 +150,6 @@ public class Movie implements Parcelable {
     @Override
     public int describeContents() {
         return 0;
-    }
-
-    public List<Trailer> getTrailerList() {
-        return trailerList;
-    }
-
-    public void setTrailerList(List<Trailer> trailerList) {
-        this.trailerList = trailerList;
-    }
-
-    public List<Review> getReviewList() {
-        return reviewList;
-    }
-
-    public void setReviewList(List<Review> reviewList) {
-        this.reviewList = reviewList;
     }
 
     public boolean isFavorite() {

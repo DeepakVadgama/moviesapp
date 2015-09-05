@@ -82,6 +82,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="16sp"
             android:id="@+id/trailer_list_container"
             android:orientation="vertical">
 
@@ -95,17 +96,25 @@
 
         </LinearLayout>
 
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="2dp"
+            android:background="#c0c0c0"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="16sp"
             android:id="@+id/review_list_container"
             android:orientation="vertical">
+
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/reviews_title"
                 android:paddingLeft="16sp"
+                android:paddingBottom="8sp"
                 android:textSize="18sp"
                 />
 

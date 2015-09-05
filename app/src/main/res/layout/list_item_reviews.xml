@@ -2,13 +2,14 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:orientation="vertical"
+              android:id="@+id/list_item_review_container"
     >
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="8sp"
-        android:id="@+id/reviewBy"
+        android:id="@+id/review_author"
         android:text="Deepak"
         android:paddingLeft="16sp"
         android:paddingRight="16sp"
@@ -20,7 +21,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="1sp"
         android:text="This is my very lengthy review of my Mad Max movie was really really good... so go on and read it."
-        android:id="@+id/reviewText"
+        android:id="@+id/review_text"
         android:paddingLeft="16sp"
         android:paddingRight="16sp"
         android:paddingBottom="8sp"/>

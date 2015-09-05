@@ -10,6 +10,14 @@ public class Review implements Parcelable {
     private String author;
     private String reviewText;
 
+    public Review() {
+    }
+
+    public Review(String author, String reviewText) {
+        this.author = author;
+        this.reviewText = reviewText;
+    }
+
     public Review(Parcel in) {
         this.author = in.readString();
         this.reviewText = in.readString();
@@ -35,4 +43,20 @@ public class Review implements Parcelable {
             return new Review[size];
         }
     };
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getReviewText() {
+        return reviewText;
+    }
+
+    public void setReviewText(String reviewText) {
+        this.reviewText = reviewText;
+    }
 }

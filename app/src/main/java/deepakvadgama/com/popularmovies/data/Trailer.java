@@ -5,10 +5,17 @@ import android.os.Parcelable;
 
 public class Trailer implements Parcelable {
 
-    private String trailerUrl;
+    private String trailerKey;
+
+    public Trailer() {
+    }
+
+    public Trailer(String trailerKey) {
+        this.trailerKey = trailerKey;
+    }
 
     public Trailer(Parcel in) {
-        this.trailerUrl = in.readString();
+        this.trailerKey = in.readString();
     }
 
     @Override
@@ -18,7 +25,7 @@ public class Trailer implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(trailerUrl);
+        dest.writeString(trailerKey);
     }
 
     public static final Parcelable.Creator<Trailer> CREATOR = new Parcelable.Creator<Trailer>() {
@@ -30,4 +37,12 @@ public class Trailer implements Parcelable {
             return new Trailer[size];
         }
     };
+
+    public String getTrailerKey() {
+        return trailerKey;
+    }
+
+    public void setTrailerKey(String trailerKey) {
+        this.trailerKey = trailerKey;
+    }
 }
