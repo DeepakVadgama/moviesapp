@@ -32,7 +32,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import deepakvadgama.com.popularmovies.data.Movie;
 
@@ -168,29 +170,109 @@ public class MainActivityFragment extends Fragment {
                 cancel(true);
             }
 
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            String movieDetailsStr = null;
-
+            List<Movie> movieList = null;
             try {
 
-                final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
-                final String SORT_PARAM = "sort_by";
-                final String API_KEY_PARAM = "api_key";
-                String sortBy = SORT_BY_POPULARITY;
-                if (getString(R.string.sort_rating).equals(params[0])) {
-                    sortBy = SORT_BY_RATING;
+                Uri builtUri = getMovieUri(params[0]);
+                URL url = new URL(builtUri.toString());
+                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
+                String movieDetailsStr = queryFromNetwork(url);
+                movieList = getMovieDetailsListFromJson(movieDetailsStr);
+
+                for (Movie movie : movieList) {
+                    builtUri = getReviewsAndTrailersUri(movie.getId());
+                    url = new URL(builtUri.toString());
+                    String reviewsAndTrailers = queryFromNetwork(url);
+                    populateMovieDetailsFromJson(reviewsAndTrailers, movie);
                 }
 
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(SORT_PARAM, sortBy)
-                        .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
-                        .build();
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error in JSON conversion", e);
+            }
 
-                URL url = new URL(builtUri.toString());
+            return movieList;
+        }
 
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
+        private void populateMovieDetailsFromJson(String json, Movie movie) throws JSONException {
+
+            final String RESULTS_LIST = "results";
+            final String TITLE = "title";
+            final String SYNOPSIS = "overview";
+            final String RELEASE_DATE = "release_date";
+            final String IMAGE_PATH = "poster_path";
+            final String VOTE_AVG = "vote_average";
+            final String ID = "id";
+
+            List<Movie> movieList = new ArrayList<>();
+
+            JSONObject forecastJson = new JSONObject(json);
+            JSONArray movieArray = forecastJson.getJSONArray(RESULTS_LIST);
+        }
+
+        private Uri getReviewsAndTrailersUri(String id) {
+            final String DISCOVER_BASE_URL = "http://api.themoviedb.org/3/movie?";
+            final String API_KEY_PARAM = "api_key";
+
+            return Uri.parse(DISCOVER_BASE_URL).buildUpon()
+                    .appendPath(id)
+                    .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
+                    .appendQueryParameter("append_to_response", "trailers,reviews")
+                    .build();
+
+        }
+
+        private Uri getMovieUri(String sortKey) {
+            final String DISCOVER_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
+            final String SORT_PARAM = "sort_by";
+            final String API_KEY_PARAM = "api_key";
+
+            String sortBy = SORT_BY_POPULARITY;
+            if (getString(R.string.sort_rating).equals(sortKey)) {
+                sortBy = SORT_BY_RATING;
+            }
+            return Uri.parse(DISCOVER_BASE_URL).buildUpon()
+                    .appendQueryParameter(SORT_PARAM, sortBy)
+                    .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
+//                    .appendQueryParameter("append_to_response", "trailers,reviews")
+                    .build();
+        }
+
+        private List<Movie> getMovieDetailsListFromJson(String movieDetailJson) throws JSONException, ParseException {
+
+            final String RESULTS_LIST = "results";
+            final String TITLE = "title";
+            final String SYNOPSIS = "overview";
+            final String RELEASE_DATE = "release_date";
+            final String IMAGE_PATH = "poster_path";
+            final String VOTE_AVG = "vote_average";
+            final String ID = "id";
+
+            List<Movie> movieList = new ArrayList<>();
+
+            JSONObject forecastJson = new JSONObject(movieDetailJson);
+            JSONArray movieArray = forecastJson.getJSONArray(RESULTS_LIST);
+
+            for (int i = 0; i < movieArray.length(); i++) {
+                Movie movie = new Movie();
+                final JSONObject jsonObject = movieArray.getJSONObject(i);
+                movie.setId(jsonObject.getString(ID));
+                movie.setTitle(jsonObject.getString(TITLE));
+                movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
+                movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
+                movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
+                movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
+                movieList.add(movie);
+            }
+
+            return movieList;
+        }
+
+        private String queryFromNetwork(URL url) {
+
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+            String json = null;
+            try {
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -218,7 +300,7 @@ public class MainActivityFragment extends Fragment {
                     // Stream was empty.  No point in parsing.
                     return null;
                 }
-                movieDetailsStr = buffer.toString();
+                json = buffer.toString();
 //                Log.v(LOG_TAG, "URI return value for " + builtUri.toString() + ": " + movieDetailsStr);
 
             } catch (IOException e) {
@@ -236,44 +318,7 @@ public class MainActivityFragment extends Fragment {
                     }
                 }
             }
-
-            List<Movie> movieList = null;
-            try {
-                movieList = getMovieDetailsListFromJson(movieDetailsStr);
-            } catch (Exception e) {
-                Log.e(LOG_TAG, "Error in JSON conversion", e);
-            }
-
-            return movieList;
-        }
-
-        private List<Movie> getMovieDetailsListFromJson(String movieDetailJson) throws JSONException, ParseException {
-
-            final String RESULTS_LIST = "results";
-            final String TITLE = "title";
-            final String SYNOPSIS = "overview";
-            final String RELEASE_DATE = "release_date";
-            final String IMAGE_PATH = "poster_path";
-            final String VOTE_AVG = "vote_average";
-
-
-            List<Movie> movieList = new ArrayList<>();
-
-            JSONObject forecastJson = new JSONObject(movieDetailJson);
-            JSONArray movieArray = forecastJson.getJSONArray(RESULTS_LIST);
-
-            for (int i = 0; i < movieArray.length(); i++) {
-                Movie movie = new Movie();
-                final JSONObject jsonObject = movieArray.getJSONObject(i);
-                movie.setTitle(jsonObject.getString(TITLE));
-                movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
-                movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
-                movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
-                movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
-                movieList.add(movie);
-            }
-
-            return movieList;
+            return json;
         }
 
         private String getCompleteUrl(String string) {

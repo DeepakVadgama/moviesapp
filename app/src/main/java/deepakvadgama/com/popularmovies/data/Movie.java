@@ -3,42 +3,63 @@ package deepakvadgama.com.popularmovies.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Movie implements Parcelable {
 
+    private String id;
     private String title;
     private Date releaseDate;
     private double voteAverage = -1d;
     private String plotSynopsis;
     private String imagePath;
+    private boolean isFavorite = false;
+    private List<Trailer> trailerList = new ArrayList<>();
+    private List<Review> reviewList = new ArrayList<>();
 
     public Movie() {
     }
 
-    public Movie(String title, Date releaseDate, double voteAverage, String plotSynopsis, String imagePath) {
+    public Movie(String id,
+                 String title,
+                 Date releaseDate,
+                 double voteAverage,
+                 String plotSynopsis,
+                 String imagePath,
+                 boolean isFavorite,
+                 List<Trailer> trailerList,
+                 List<Review> reviewList) {
+        this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
         this.voteAverage = voteAverage;
         this.plotSynopsis = plotSynopsis;
         this.imagePath = imagePath;
+        this.isFavorite = isFavorite;
+        this.trailerList = trailerList;
+        this.reviewList = reviewList;
     }
 
     public Movie(Parcel in) {
+        this.id = in.readString();
         this.title = in.readString();
         this.voteAverage = in.readDouble();
         this.plotSynopsis = in.readString();
         this.imagePath = in.readString();
+        this.isFavorite = in.readByte() != 0;
         long time = in.readLong();
         if (time < 0) {
             releaseDate = null;
         } else {
             releaseDate = new Date(time);
         }
+        in.readTypedList(this.trailerList, Trailer.CREATOR);
+        in.readTypedList(this.reviewList, Review.CREATOR);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
-
         public Movie createFromParcel(Parcel in) {
             return new Movie(in);
         }
@@ -47,6 +68,23 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(title);
+        dest.writeDouble(voteAverage);
+        dest.writeString(plotSynopsis);
+        dest.writeString(imagePath);
+        dest.writeByte((byte) (isFavorite ? 1 : 0));
+        if (releaseDate != null) {
+            dest.writeLong(releaseDate.getTime());
+        } else {
+            dest.writeLong(-1l);
+        }
+        dest.writeTypedList(trailerList);
+        dest.writeTypedList(reviewList);
+    }
 
     public String getTitle() {
         return title;
@@ -88,6 +126,14 @@ public class Movie implements Parcelable {
         this.imagePath = imagePath;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -114,16 +160,27 @@ public class Movie implements Parcelable {
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(title);
-        dest.writeDouble(voteAverage);
-        dest.writeString(plotSynopsis);
-        dest.writeString(imagePath);
-        if (releaseDate != null) {
-            dest.writeLong(releaseDate.getTime());
-        } else {
-            dest.writeLong(-1l);
-        }
+    public List<Trailer> getTrailerList() {
+        return trailerList;
+    }
+
+    public void setTrailerList(List<Trailer> trailerList) {
+        this.trailerList = trailerList;
+    }
+
+    public List<Review> getReviewList() {
+        return reviewList;
+    }
+
+    public void setReviewList(List<Review> reviewList) {
+        this.reviewList = reviewList;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setIsFavorite(boolean isFavorite) {
+        this.isFavorite = isFavorite;
     }
 }
