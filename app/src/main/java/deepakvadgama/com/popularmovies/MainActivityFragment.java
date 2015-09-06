@@ -119,7 +119,7 @@ public class MainActivityFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(SAVED_MOVIE_LIST, mMovies);
         outState.putInt(SELECTED_MOVIE_POSITION, mPosition);
-        outState.putBoolean(SELECTED_MOVIE_POSITION, mTwoPane);
+        outState.putBoolean(TWO_PANE, mTwoPane);
         super.onSaveInstanceState(outState);
     }
 

@@ -34,7 +34,8 @@ public class DetailActivityFragment extends Fragment {
 
     public final String LOG_TAG = this.getClass().getSimpleName();
     public static final String MOVIE_TAG = "movie_tag";
-    public static final int TRAILER_TAG = 1;
+
+    private Movie mMovie;
     private List<Review> mReviews;
     private List<Trailer> mTrailers;
     private TrailerListener mTrailerListener = new TrailerListener();
@@ -47,49 +48,52 @@ public class DetailActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-        Movie movie = null;
-
         Intent intent = getActivity().getIntent();
+
         if (intent != null && intent.hasExtra(MOVIE_TAG)) {
-            movie = intent.getParcelableExtra(MOVIE_TAG);
+            // One pane UI is started as intent
+            mMovie = intent.getParcelableExtra(MOVIE_TAG);
         } else if (getArguments() != null && getArguments().containsKey(MOVIE_TAG)) {
-            movie = getArguments().getParcelable(MOVIE_TAG);
+            // Two pane UI is started as bundle
+            mMovie = getArguments().getParcelable(MOVIE_TAG);
         }
 
-        if (movie != null) {
+
+        if (mMovie != null) {
 
             // Fetch reviews
             FetchReviewsTask fetchReviewsTask = new FetchReviewsTask();
-            fetchReviewsTask.execute(movie.getId());
+            fetchReviewsTask.execute(mMovie.getId());
 
             // Fetch trailers
             FetchTrailersTask fetchTrailersTask = new FetchTrailersTask();
-            fetchTrailersTask.execute(movie.getId());
+            fetchTrailersTask.execute(mMovie.getId());
 
             // Populate remaining UI
             TextView movieTitle = (TextView) rootView.findViewById(R.id.movie_title);
-            movieTitle.setText(movie.getTitle());
+            movieTitle.setText(mMovie.getTitle());
 
             TextView movieRating = (TextView) rootView.findViewById(R.id.movie_rating_average);
             // Review rating might not be available
-            if (movie.getVoteAverage() >= 0d) {
-                movieRating.setText("Rating: " + movie.getVoteAverage() + "/10");
+            if (mMovie.getVoteAverage() >= 0d) {
+                movieRating.setText("Rating: " + mMovie.getVoteAverage() + "/10");
             }
 
             ImageView moviePoster = (ImageView) rootView.findViewById(R.id.movie_poster);
-            Picasso.with(getActivity()).load(movie.getImagePath()).into(moviePoster);
+            Picasso.with(getActivity()).load(mMovie.getImagePath()).into(moviePoster);
 
             TextView movieRelease = (TextView) rootView.findViewById(R.id.movie_release_date);
             DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
-            String releaseDate = movie.getReleaseDate() == null ? "TBD" : df.format(movie.getReleaseDate());
+            String releaseDate = mMovie.getReleaseDate() == null ? "TBD" : df.format(mMovie.getReleaseDate());
             movieRelease.setText(releaseDate);
 
             TextView moviePlot = (TextView) rootView.findViewById(R.id.movie_plot);
-            moviePlot.setText(movie.getPlotSynopsis());
+            moviePlot.setText(mMovie.getPlotSynopsis());
         }
 
         return rootView;
     }
+
 
     private class TrailerListener implements View.OnTouchListener {
 

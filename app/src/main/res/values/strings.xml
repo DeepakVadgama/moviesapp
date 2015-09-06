@@ -16,6 +16,7 @@
     <string name="pref_sort_title">Sort By</string>
     <string name="reviews_title">Reviews</string>
     <string name="trailers_title">Trailers</string>
+    <string name="youtube_icon_desc">Youtube Icon</string>
     <string-array name="pref_sort_titles">
         <item>Most Popular</item>
         <item>Highest Rated</item>
