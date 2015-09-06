@@ -101,7 +101,7 @@ public class MainActivityFragment extends Fragment {
 
             // Can be avoided if it is loader/cursor?
             // Can also be used in setActivatedItem instead..
-            mGridView.smoothScrollToPositionFromTop(mPosition == ListView.INVALID_POSITION ? 0 : mPosition, 0);
+            mGridView.smoothScrollToPosition(mPosition == ListView.INVALID_POSITION ? 0 : mPosition);
         } else {
             refetchMovies();
         }
@@ -160,7 +160,7 @@ public class MainActivityFragment extends Fragment {
                 // is unfavorited, the detail fragment is not cleared
                 ((Callback) getActivity()).onItemSelected(null);
             }
-            mGridView.smoothScrollToPositionFromTop(mPosition, 0);
+            mGridView.smoothScrollToPosition(mPosition);
         }
 
         @Override
