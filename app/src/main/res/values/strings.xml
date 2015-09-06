@@ -17,6 +17,8 @@
     <string name="reviews_title">Reviews</string>
     <string name="trailers_title">Trailers</string>
     <string name="youtube_icon_desc">Youtube Icon</string>
+    <string name="favorite_desc">Mark as Favorite</string>
+    <string name="favorite_movies_pref">favorite_movies_pref</string>
     <string-array name="pref_sort_titles">
         <item>Most Popular</item>
         <item>Highest Rated</item>

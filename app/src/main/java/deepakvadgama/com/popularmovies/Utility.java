@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Utility {
 
@@ -25,7 +27,33 @@ public class Utility {
         return prefs.getString(context.getString(R.string.pref_sort_key), context.getString(R.string.sort_popularity));
     }
 
+    public static void addToFavorites(Context context, String movieId) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Set<String> stringSet = prefs.getStringSet(context.getString(R.string.favorite_movies_pref), new HashSet<String>());
+        stringSet.add(movieId);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putStringSet(context.getString(R.string.favorite_movies_pref), stringSet);
+        editor.apply();
+    }
+
+    public static void removeFromFavorites(Context context, String movieId) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Set<String> stringSet = prefs.getStringSet(context.getString(R.string.favorite_movies_pref), new HashSet<String>());
+        stringSet.remove(movieId);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putStringSet(context.getString(R.string.favorite_movies_pref), stringSet);
+        editor.apply();
+    }
+
+
+    public static boolean isFavorite(Context context, String movieId) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Set<String> stringSet = prefs.getStringSet(context.getString(R.string.favorite_movies_pref), new HashSet<String>());
+        return stringSet.contains(movieId);
+    }
+
     public static boolean isConnectedToInternet(Context context) {
+
         ConnectivityManager cm =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 

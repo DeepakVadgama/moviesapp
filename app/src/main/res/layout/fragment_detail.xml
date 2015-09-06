@@ -34,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:contentDescription="@string/movie_poster_description"
                 android:minHeight="200sp" />
 
@@ -57,9 +57,19 @@
                     android:id="@+id/movie_rating_average"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="16dp"
+                    android:paddingTop="16sp"
                     android:textStyle="bold"
                     android:textSize="16sp" />
+
+                <ImageButton
+                    android:layout_width="@dimen/abc_action_button_min_width_material"
+                    android:layout_height="@dimen/abc_action_button_min_height_material"
+                    android:src="@drawable/favorite_button_drawable"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/favorite_desc"
+                    android:id="@+id/favorite_button"
+                    android:scaleType="centerCrop"
+                    android:layout_marginTop="16sp"/>
 
             </LinearLayout>
 

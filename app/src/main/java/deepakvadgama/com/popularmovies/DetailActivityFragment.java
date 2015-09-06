@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -39,6 +40,8 @@ public class DetailActivityFragment extends Fragment {
     private List<Review> mReviews;
     private List<Trailer> mTrailers;
     private TrailerListener mTrailerListener = new TrailerListener();
+    private FavoriteListener mFavoriteListener = new FavoriteListener();
+
 
     public DetailActivityFragment() {
     }
@@ -60,6 +63,9 @@ public class DetailActivityFragment extends Fragment {
 
 
         if (mMovie != null) {
+
+            // Alternatively, could ask MainActivity to populate this upfront.
+            mMovie.setIsFavorite(Utility.isFavorite(getActivity(), mMovie.getId()));
 
             // Fetch reviews
             FetchReviewsTask fetchReviewsTask = new FetchReviewsTask();
@@ -86,6 +92,11 @@ public class DetailActivityFragment extends Fragment {
             DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
             String releaseDate = mMovie.getReleaseDate() == null ? "TBD" : df.format(mMovie.getReleaseDate());
             movieRelease.setText(releaseDate);
+
+            ImageButton favoriteButton = (ImageButton) rootView.findViewById(R.id.favorite_button);
+            favoriteButton.setSelected(mMovie.isFavorite());
+            favoriteButton.setTag(mMovie.getId());
+            favoriteButton.setOnClickListener(mFavoriteListener);
 
             TextView moviePlot = (TextView) rootView.findViewById(R.id.movie_plot);
             moviePlot.setText(mMovie.getPlotSynopsis());
@@ -291,6 +302,40 @@ public class DetailActivityFragment extends Fragment {
                 .appendPath(query)
                 .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
                 .build();
+    }
+
+    private class FavoriteListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+            mMovie.setIsFavorite(!mMovie.isFavorite());
+            v.setSelected(mMovie.isFavorite());
+            FavoritesTask favoritesTask = new FavoritesTask();
+            favoritesTask.execute(mMovie.getId(), String.valueOf(mMovie.isFavorite()));
+        }
+    }
+
+    public class FavoritesTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+
+            String movieId = params[0];
+            boolean isFavorite = Boolean.parseBoolean(params[1]);
+
+            if (isFavorite) {
+                Utility.addToFavorites(getActivity(), movieId);
+                return "Added to favorites";
+            } else {
+                Utility.removeFromFavorites(getActivity(), movieId);
+                return "Removed from favorites";
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String operation) {
+            Snackbar.make(getView(), operation, Snackbar.LENGTH_LONG).show();
+        }
+
     }
 
 }
