@@ -14,9 +14,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Utility {
+
+    public static AtomicBoolean favoriteUpdated = new AtomicBoolean(false);
 
     public static String getApiKey() {
         return "api_key";
@@ -45,11 +49,16 @@ public class Utility {
         editor.apply();
     }
 
-
     public static boolean isFavorite(Context context, String movieId) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> stringSet = prefs.getStringSet(context.getString(R.string.favorite_movies_pref), new HashSet<String>());
         return stringSet.contains(movieId);
+    }
+
+
+    public static Set<String> getFavorites(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getStringSet(context.getString(R.string.favorite_movies_pref), new HashSet<String>());
     }
 
     public static boolean isConnectedToInternet(Context context) {

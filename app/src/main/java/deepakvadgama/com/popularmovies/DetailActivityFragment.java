@@ -100,6 +100,9 @@ public class DetailActivityFragment extends Fragment {
 
             TextView moviePlot = (TextView) rootView.findViewById(R.id.movie_plot);
             moviePlot.setText(mMovie.getPlotSynopsis());
+        } else {
+            // If movie details are not there, clear whole fragment
+            rootView.setVisibility(View.INVISIBLE);
         }
 
         return rootView;
@@ -169,12 +172,15 @@ public class DetailActivityFragment extends Fragment {
         }
 
         @Override
-        protected List<Review> doInBackground(String... params) {
-
+        protected void onPreExecute() {
             if (!Utility.isConnectedToInternet(getActivity())) {
                 Snackbar.make(getView(), "Not connected to internet", Snackbar.LENGTH_LONG).show();
                 cancel(true);
             }
+        }
+
+        @Override
+        protected List<Review> doInBackground(String... params) {
 
             List<Review> reviewList = null;
             try {
@@ -230,11 +236,18 @@ public class DetailActivityFragment extends Fragment {
         }
 
         @Override
-        protected List<Trailer> doInBackground(String... params) {
-
+        protected void onPreExecute() {
             if (!Utility.isConnectedToInternet(getActivity())) {
                 Snackbar.make(getView(), "Not connected to internet", Snackbar.LENGTH_LONG).show();
                 cancel(true);
+            }
+        }
+
+        @Override
+        protected List<Trailer> doInBackground(String... params) {
+
+            if (isCancelled()) {
+                return null;
             }
 
             List<Trailer> trailerList = null;
@@ -310,6 +323,7 @@ public class DetailActivityFragment extends Fragment {
         public void onClick(View v) {
             mMovie.setIsFavorite(!mMovie.isFavorite());
             v.setSelected(mMovie.isFavorite());
+            Utility.favoriteUpdated.compareAndSet(false, true);
             FavoritesTask favoritesTask = new FavoritesTask();
             favoritesTask.execute(mMovie.getId(), String.valueOf(mMovie.isFavorite()));
         }

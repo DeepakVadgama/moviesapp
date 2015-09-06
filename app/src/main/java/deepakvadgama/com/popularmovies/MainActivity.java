@@ -89,7 +89,11 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
         super.onResume();
         String sortCriteria = Utility.getSortCriteria(this);
 
-        if (sortCriteria != null && !sortCriteria.equals(mSortCriteria)) {
+        // Refetch if
+        //  sort criteria is updated OR
+        //  sort criteria is by favorites and favorite movie is updated
+        if ((sortCriteria != null && !sortCriteria.equals(mSortCriteria)) ||
+                (getString(R.string.sort_favorites).equals(sortCriteria) && Utility.favoriteUpdated.get())) {
             MainActivityFragment ff = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
             if (ff != null) {
                 ff.refetchMovies();

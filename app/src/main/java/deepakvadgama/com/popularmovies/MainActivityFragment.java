@@ -1,10 +1,8 @@
 package deepakvadgama.com.popularmovies;
 
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -22,19 +20,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import deepakvadgama.com.popularmovies.data.Movie;
 
@@ -83,7 +75,9 @@ public class MainActivityFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
+                             Bundle savedInstanceState) {
 
         List<Movie> myStringArray = new ArrayList<>();
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -145,40 +139,64 @@ public class MainActivityFragment extends Fragment {
                 return;
             }
 
-            if (movies != null && !movies.isEmpty()) {
+            // Favorites can be empty so only check for null
+            if (movies != null) {
                 mAdapter.clear();
                 mAdapter.addAll(movies);
                 mMovies = (ArrayList<Movie>) movies;
+                if (mMovies.isEmpty()) {
+                    Snackbar.make(getView(), "No movies found.. ", Snackbar.LENGTH_LONG).show();
+                }
             }
             mAdapter.notifyDataSetChanged();
 
+
             // Solved by creating boolean mTwoPane
-            // Potential problem, what it this task is called, after a position is selected in tablet, but then someone
-            // updated the sort criteria. In that case, the data will be new, but the mPosition will not have been updated right?
             if (mTwoPane && movies != null && !movies.isEmpty()) {
                 mPosition = 0;
                 ((Callback) getActivity()).onItemSelected(movies.get(0));
+            } else if (mTwoPane) {
+                // Tablet special case, when only 1 favorite being displayed,
+                // is unfavorited, the detail fragment is not cleared
+                ((Callback) getActivity()).onItemSelected(null);
             }
             mGridView.smoothScrollToPositionFromTop(mPosition, 0);
         }
 
         @Override
-        protected List<Movie> doInBackground(String... params) {
-
+        protected void onPreExecute() {
             if (!Utility.isConnectedToInternet(getActivity())) {
                 Snackbar.make(getView(), "Not connected to internet", Snackbar.LENGTH_LONG).show();
                 cancel(true);
             }
+        }
+
+        @Override
+        protected List<Movie> doInBackground(String... params) {
 
             List<Movie> movieList = null;
             try {
 
-                Uri builtUri = getMovieUri(params[0]);
-                URL url = new URL(builtUri.toString());
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
-                String movieDetailsStr = Utility.queryFromNetwork(url, LOG_TAG);
-                movieList = getMovieDetailsListFromJson(movieDetailsStr);
+                if (getString(R.string.sort_favorites).equals(params[0])) {
 
+                    movieList = new ArrayList<>();
+                    Set<String> movieids = Utility.getFavorites(getActivity());
+                    if (movieids == null || movieids.isEmpty()) {
+                        return movieList;
+                    }
+
+                    for (String movieid : movieids) {
+                        Uri builtUri = getMovieUriForId(movieid);
+                        URL url = new URL(builtUri.toString());
+                        String movieDetailsStr = Utility.queryFromNetwork(url, LOG_TAG);
+                        movieList.add(getMovieFromJson(movieDetailsStr));
+                    }
+                } else {
+                    Uri builtUri = getMovieUriForSort(params[0]);
+                    URL url = new URL(builtUri.toString());
+                    String movieDetailsStr = Utility.queryFromNetwork(url, LOG_TAG);
+                    movieList = getMoviesFromJson(movieDetailsStr);
+                }
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error in JSON conversion", e);
             }
@@ -186,7 +204,17 @@ public class MainActivityFragment extends Fragment {
             return movieList;
         }
 
-        private Uri getMovieUri(String sortKey) {
+        private Uri getMovieUriForId(String movieId) {
+            final String DISCOVER_BASE_URL = "http://api.themoviedb.org/3/movie/";
+            final String API_KEY_PARAM = "api_key";
+
+            return Uri.parse(DISCOVER_BASE_URL).buildUpon()
+                    .appendPath(movieId)
+                    .appendQueryParameter(API_KEY_PARAM, Utility.getApiKey())
+                    .build();
+        }
+
+        private Uri getMovieUriForSort(String sortKey) {
             final String DISCOVER_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
             final String SORT_PARAM = "sort_by";
             final String API_KEY_PARAM = "api_key";
@@ -201,9 +229,27 @@ public class MainActivityFragment extends Fragment {
                     .build();
         }
 
-        private List<Movie> getMovieDetailsListFromJson(String movieDetailJson) throws JSONException, ParseException {
+        private List<Movie> getMoviesFromJson(String movieDetailJson) throws JSONException, ParseException {
 
             final String RESULTS_LIST = "results";
+            List<Movie> movieList = new ArrayList<>();
+            JSONObject movieListJson = new JSONObject(movieDetailJson);
+            JSONArray movieArray = movieListJson.getJSONArray(RESULTS_LIST);
+            for (int i = 0; i < movieArray.length(); i++) {
+                final JSONObject jsonObject = movieArray.getJSONObject(i);
+                Movie movie = getMovieFromJson(jsonObject);
+                movieList.add(movie);
+            }
+            return movieList;
+        }
+
+        private Movie getMovieFromJson(String json) throws JSONException, ParseException {
+            JSONObject jsonObject = new JSONObject(json);
+            return getMovieFromJson(jsonObject);
+        }
+
+        private Movie getMovieFromJson(JSONObject jsonObject) throws JSONException, ParseException {
+
             final String TITLE = "title";
             final String SYNOPSIS = "overview";
             final String RELEASE_DATE = "release_date";
@@ -211,24 +257,14 @@ public class MainActivityFragment extends Fragment {
             final String VOTE_AVG = "vote_average";
             final String ID = "id";
 
-            List<Movie> movieList = new ArrayList<>();
-
-            JSONObject forecastJson = new JSONObject(movieDetailJson);
-            JSONArray movieArray = forecastJson.getJSONArray(RESULTS_LIST);
-
-            for (int i = 0; i < movieArray.length(); i++) {
-                Movie movie = new Movie();
-                final JSONObject jsonObject = movieArray.getJSONObject(i);
-                movie.setId(jsonObject.getString(ID));
-                movie.setTitle(jsonObject.getString(TITLE));
-                movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
-                movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
-                movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
-                movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
-                movieList.add(movie);
-            }
-
-            return movieList;
+            Movie movie = new Movie();
+            movie.setId(jsonObject.getString(ID));
+            movie.setTitle(jsonObject.getString(TITLE));
+            movie.setPlotSynopsis(jsonObject.getString(SYNOPSIS));
+            movie.setReleaseDate(convertToDate(jsonObject.getString(RELEASE_DATE)));
+            movie.setImagePath(getCompleteUrl(jsonObject.getString(IMAGE_PATH)));
+            movie.setVoteAverage(jsonObject.getDouble(VOTE_AVG));
+            return movie;
         }
 
         private String getCompleteUrl(String string) {
